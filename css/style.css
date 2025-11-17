@@ -83,7 +83,7 @@ main {
     align-items: center;
     cursor: pointer;
     width: fit-content;
-    font-size: 26px;
+    font-size: 23px;
     gap: 20px;
 }
 
@@ -138,6 +138,23 @@ main {
 
 
 @media (max-width: 900px) {
+    .message {
+        font-size: 15px;
+        width: fit-content;
+        padding: 0 50px;
+    }
+    .choice-lang {
+        font-size: 15px;
+        width: fit-content;
+        padding: 20px 25px;
+    }
+    .checkbox {
+        font-size: 15px;
+    }
+    .checkmark {
+        width: 15px;
+        height: 15px;
+    }
     .choice-lang {
         flex-wrap: wrap;
         height: max-content;
