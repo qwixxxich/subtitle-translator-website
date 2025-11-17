@@ -24,6 +24,7 @@ nav {
     height: 60px;
     background: #fff;
     border-radius: 0 0 30px 30px;
+
     h1 {
         font-size: 30px;
         font-weight: normal;
@@ -116,6 +117,7 @@ main {
     gap: 10px;
     align-items: center;
     justify-content: center;
+
     a {
         border-radius: 5px;
         padding: 10px 20px;
@@ -128,35 +130,35 @@ main {
 }
 
 
-
-
-
-
-
-
-
-
-
 @media (max-width: 900px) {
+    main {
+        gap: 30px;
+    }
+
     .message {
         font-size: 15px;
         width: fit-content;
-        padding: 0 50px;
+        height: fit-content;
+        padding: 10px 25px;
     }
+
     .choice-lang {
         font-size: 15px;
         width: fit-content;
         padding: 20px 25px;
         gap: 14px;
     }
+
     .checkbox {
         font-size: 15px;
     }
+
     .checkmark {
         width: 15px;
         height: 15px;
         border-radius: 4px;
     }
+
     .choice-lang {
         flex-wrap: wrap;
         height: max-content;
