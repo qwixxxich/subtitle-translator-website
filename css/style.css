@@ -147,6 +147,7 @@ main {
         font-size: 15px;
         width: fit-content;
         padding: 20px 25px;
+        gap: 14px;
     }
     .checkbox {
         font-size: 15px;
@@ -154,6 +155,7 @@ main {
     .checkmark {
         width: 15px;
         height: 15px;
+        border-radius: 4px;
     }
     .choice-lang {
         flex-wrap: wrap;
