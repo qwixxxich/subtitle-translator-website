@@ -1,0 +1,145 @@
+@import "reset.css";
+@import "font.css";
+
+* {
+    box-sizing: border-box;
+    text-decoration: none;
+    font-family: "Anonymous Pro", serif;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #000;
+    gap: 41px;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 507px;
+    height: 60px;
+    background: #fff;
+    border-radius: 0 0 30px 30px;
+    h1 {
+        font-size: 30px;
+        font-weight: normal;
+    }
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 999px;
+    gap: 60px;
+}
+
+.upload-file {
+    border-radius: 0 30px 30px 30px;
+    cursor: pointer;
+}
+
+.upload-file:hover {
+    background: #ececec;
+}
+
+
+.choice-msg {
+    border-radius: 30px 30px 0 30px;
+    align-self: flex-end;
+}
+
+.message {
+    display: flex;
+    width: 100%;
+    max-width: 523px;
+    height: 57px;
+    font-size: 23px;
+    background: #fff;
+    align-items: center;
+    justify-content: center;
+}
+
+.choice-lang {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 17px;
+    width: 100%;
+    max-width: 861px;
+    height: 392px;
+    border-radius: 0 30px 30px 30px;
+    background: #fff;
+    padding: 38px;
+    font-size: 23px;
+}
+
+.checkbox {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    width: fit-content;
+    font-size: 26px;
+    gap: 20px;
+}
+
+.checkbox input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.checkmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: #ffffff;
+    border: 2px solid #000;
+    border-radius: 10px;
+    transition: 0.1s;
+}
+
+.checkbox input:checked + .checkmark {
+    background: #000000;
+    border-color: #000;
+}
+
+.choice-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    a {
+        border-radius: 5px;
+        padding: 10px 20px;
+        color: #fff;
+        background: #000;
+        /*justify-content: center;*/
+        /*align-items: center;*/
+        width: 100%;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+@media (max-width: 900px) {
+    .choice-lang {
+        flex-wrap: wrap;
+        height: max-content;
+    }
+}
