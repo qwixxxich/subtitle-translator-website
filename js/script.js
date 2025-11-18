@@ -10,3 +10,11 @@ document.querySelector('.choose-all').addEventListener('click', function (e) {
 
     filtered.forEach(cb => cb.checked = !allChecked);
 });
+
+const selfCheckbox = document.getElementById('self-var');
+const selfInput = document.getElementById('self-input');
+
+selfInput.addEventListener('input', () => {
+    selfInput.value = selfInput.value.replace(/[^A-Za-z ]/g, '');
+    selfCheckbox.checked = selfInput.value.trim().length > 0;
+});
