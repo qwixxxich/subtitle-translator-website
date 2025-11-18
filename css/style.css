@@ -119,12 +119,13 @@ main {
     justify-content: center;
 
     a {
+        display: flex;
         border-radius: 5px;
         padding: 10px 20px;
         color: #fff;
         background: #000;
-        /*justify-content: center;*/
-        /*align-items: center;*/
+        justify-content: center;
+        align-items: center;
         width: 100%;
     }
 }
@@ -133,6 +134,17 @@ main {
 @media (max-width: 900px) {
     main {
         gap: 30px;
+    }
+
+    nav {
+        width: fit-content;
+        height: fit-content;
+        padding: 10px 50px;
+
+        h1 {
+            font-size: 25px;
+        }
+
     }
 
     .message {
@@ -147,6 +159,8 @@ main {
         width: fit-content;
         padding: 20px 25px;
         gap: 14px;
+        flex-wrap: wrap;
+        height: max-content;
     }
 
     .checkbox {
@@ -160,8 +174,7 @@ main {
         border-radius: 4px;
     }
 
-    .choice-lang {
-        flex-wrap: wrap;
-        height: max-content;
+    .choice-buttons {
+        gap: 5px;
     }
 }
