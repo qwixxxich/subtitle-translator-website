@@ -130,6 +130,20 @@ main {
     }
 }
 
+.self-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+#self-input {
+    width: 285px;
+    padding: 5px 6px;
+    font-size: 23px;
+    border: none;
+    outline: none;
+}
+
 
 @media (max-width: 900px) {
     main {
@@ -165,7 +179,6 @@ main {
 
     .checkbox {
         font-size: 15px;
-        width: 100%;
     }
 
     .checkmark {
@@ -176,5 +189,15 @@ main {
 
     .choice-buttons {
         gap: 5px;
+    }
+
+    .self-option {
+        gap: 20px;
+    }
+
+    #self-input {
+        font-size: 15px;
+        width: 220px;
+        padding: 0;
     }
 }

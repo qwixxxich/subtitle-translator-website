@@ -82,11 +82,14 @@
                 <span class="checkmark"></span>
                 Русский
             </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Свой вариант (На англ)
-            </label>
+            <div class="self-option">
+                <label class="checkbox">
+                    <input type="checkbox" id="self-var">
+                    <span class="checkmark"></span>
+                </label>
+
+                <input type="text" id="self-input" inputmode="latin" placeholder="Свой вариант (На англ)" pattern="[A-Za-z ]+" title="Можно вводить только английские буквы">
+            </div>
             <div class="choice-buttons">
                 <a href="#" class="choose-all">Выбрать все</a>
                 <a href="#" class="send">ОТПРАВИТЬ</a>
