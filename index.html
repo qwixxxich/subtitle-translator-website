@@ -7,96 +7,111 @@
     <link href="css/style.css" rel="stylesheet"/>
 </head>
 <body>
-    <nav>
-        <h1>SRT Translator</h1>
-    </nav>
-    <main>
-        <label class="upload-file message">
-            Загрузить .srt файл
-            <input type="file" accept=".srt" style="display:none;">
+<nav>
+    <h1>SRT Translator</h1>
+</nav>
+<main>
+    <label class="upload-file message">
+        <span class="upload-text">Загрузить .srt файл</span>
+        <input type="file" accept=".srt" style="display:none;">
+    </label>
+    <p class="choice-msg message">Выберите языки для перевода:</p>
+    <div class="choice-lang">
+        <label class="checkbox" data-lang="English">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Английский
         </label>
-        <p class="choice-msg message">Выберите языки для перевода:</p>
-        <div class="choice-lang">
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Английский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Португальский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Хинди
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Испанский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Арабский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Въетнамский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Китайский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Узбекский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Итальянский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Немецкий
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Украинский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Корейский
-            </label>
-            <label class="checkbox">
-                <input type="checkbox">
-                <span class="checkmark"></span>
-                Русский
-            </label>
-            <div class="self-option">
-                <label class="checkbox">
-                    <input type="checkbox" id="self-var">
-                    <span class="checkmark"></span>
-                </label>
-                <input type="text" id="self-input" inputmode="latin" placeholder="Свой вариант (На англ)" pattern="[A-Za-z ]+" title="Можно вводить только английские буквы">
-            </div>
-            <div class="choice-buttons">
-                <a href="#" class="choose-all">Выбрать все</a>
-                <a href="#" class="send">ОТПРАВИТЬ</a>
-            </div>
-        </div>
 
-    </main>
-    <footer></footer>
-    <script src="js/script.js"></script>
+        <label class="checkbox" data-lang="Portuguese">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Португальский
+        </label>
+
+        <label class="checkbox" data-lang="Hindi">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Хинди
+        </label>
+
+        <label class="checkbox" data-lang="Spanish">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Испанский
+        </label>
+
+        <label class="checkbox" data-lang="Arabic">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Арабский
+        </label>
+
+        <label class="checkbox" data-lang="Vietnamese">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Въетнамский
+        </label>
+
+        <label class="checkbox" data-lang="Chinese">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Китайский
+        </label>
+
+        <label class="checkbox" data-lang="Uzbek">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Узбекский
+        </label>
+
+        <label class="checkbox" data-lang="Italian">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Итальянский
+        </label>
+
+        <label class="checkbox" data-lang="German">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Немецкий
+        </label>
+
+        <label class="checkbox" data-lang="Ukrainian">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Украинский
+        </label>
+
+        <label class="checkbox" data-lang="Korean">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Корейский
+        </label>
+
+        <label class="checkbox" data-lang="Russian">
+            <input type="checkbox">
+            <span class="checkmark"></span>
+            Русский
+        </label>
+        <div class="self-option">
+            <label class="checkbox">
+                <input type="checkbox" id="self-var">
+                <span class="checkmark"></span>
+            </label>
+            <input type="text" id="self-input" inputmode="latin" placeholder="Свой вариант (На англ)"
+                   pattern="[A-Za-z ]+" title="Можно вводить только английские буквы">
+        </div>
+        <div class="choice-buttons">
+            <a href="#" class="choose-all">Выбрать все</a>
+            <a href="#" class="send">ОТПРАВИТЬ</a>
+        </div>
+    </div>
+    <p class="download-msg message hidden">Принято! Примерное оставшееся время до скачивания: 05:00</p>
+</main>
+<footer>
+    <a onclick="window.location.reload();" class="reload-conv message hidden">Перезапуск диалога</a>
+</footer>
+<script src="js/script.js"></script>
 </body>
 </html>

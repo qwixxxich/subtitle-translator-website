@@ -36,7 +36,11 @@ main {
     flex-direction: column;
     width: 100%;
     max-width: 999px;
-    gap: 60px;
+    gap: 50px;
+}
+
+footer {
+    padding-bottom: 50px;
 }
 
 .upload-file {
@@ -57,7 +61,8 @@ main {
 .message {
     display: flex;
     width: 100%;
-    max-width: 523px;
+    max-width: fit-content;
+    padding: 0 50px;
     height: 57px;
     font-size: 23px;
     background: #fff;
@@ -144,6 +149,30 @@ main {
     outline: none;
 }
 
+.download-msg {
+    border-radius: 30px 30px 0 30px;
+    align-self: flex-end;
+    padding: 0 20px;
+}
+
+.reload-conv {
+    border-radius: 15px;
+    padding: 0 20px;
+    color: #000;
+}
+
+.reload-conv:hover {
+    background: #ececec;
+}
+
+.buttons-hidden {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.hidden {
+    display: none !important;
+}
 
 @media (max-width: 900px) {
     main {
@@ -162,6 +191,7 @@ main {
     }
 
     .message {
+        display: flex;
         font-size: 15px;
         width: fit-content;
         height: fit-content;
@@ -200,4 +230,9 @@ main {
         width: 220px;
         padding: 0;
     }
+
+    .download-msg {
+        width: 400px;
+    }
+
 }
