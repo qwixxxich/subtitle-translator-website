@@ -63,9 +63,9 @@ if (fileInput && uploadText) {
 // БЛОК 4 — ОБРАБОТКА КНОПКИ "ОТПРАВИТЬ" + ТАЙМЕР
 // =========================
 const sendButton = document.querySelector('.send');
-const buttonsContainer = document.querySelector('.choice-buttons');
 const downloadMsg = document.querySelector('.download-msg');
 const reloadLink = document.querySelector('.reload-conv');
+const buttonsContainer = document.querySelector('.choice-buttons');
 
 if (sendButton) {
     sendButton.addEventListener('click', (e) => {
@@ -114,12 +114,11 @@ if (sendButton) {
             downloadMsg.classList.remove('hidden');
         }
 
+        // =========================
+        // ДЕАКТИВАЦИЯ КНОПОК ТОЛЬКО НА МОБИЛЬНОЙ (через CSS)
+        // =========================
         if (buttonsContainer) {
-            buttonsContainer.classList.add('buttons-hidden');
-        }
-
-        if (!downloadMsg) {
-            return;
+            buttonsContainer.classList.add('buttons-disabled');
         }
 
         let timeLeft = 5 * 60;
@@ -141,7 +140,7 @@ if (sendButton) {
                 timeLeft--;
             } else {
                 clearInterval(timerInterval);
-                downloadMsg.textContent = 'Файл скоро скачается!';
+                downloadMsg.textContent = 'Файл готов к скачиванию!';
                 if (reloadLink) {
                     reloadLink.classList.remove('hidden');
                 }
