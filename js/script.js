@@ -1,26 +1,15 @@
-// =========================
-// БЛОК 1 — КНОПКА "ВЫБРАТЬ ВСЁ"
-// =========================
 const chooseAllLink = document.querySelector('.choose-all');
 
 if (chooseAllLink) {
-    chooseAllLink.addEventListener('click', function (e) {
+    chooseAllLink.addEventListener('click', (e) => {
         e.preventDefault();
-
         const checkboxes = document.querySelectorAll('.choice-lang input[type="checkbox"]');
-        const targetId = 'self-var';
-
-        const filtered = [...checkboxes].filter(cb => cb.id !== targetId);
+        const filtered = [...checkboxes].filter(cb => cb.id !== 'self-var');
         const allChecked = filtered.every(cb => cb.checked);
-
         filtered.forEach(cb => (cb.checked = !allChecked));
     });
 }
 
-
-// =========================
-// БЛОК 2 — "СВОЙ ВАРИАНТ" ЯЗЫКА
-// =========================
 const selfCheckbox = document.getElementById('self-var');
 const selfInput = document.getElementById('self-input');
 
@@ -31,10 +20,6 @@ if (selfInput && selfCheckbox) {
     });
 }
 
-
-// =========================
-// БЛОК 3 — ЗАГРУЗКА ФАЙЛА (отображение имени)
-// =========================
 const uploadLabel = document.querySelector('.upload-file');
 const uploadText = uploadLabel ? uploadLabel.querySelector('.upload-text') : null;
 const fileInput = uploadLabel ? uploadLabel.querySelector('input[type="file"]') : null;
@@ -42,30 +27,37 @@ const fileInput = uploadLabel ? uploadLabel.querySelector('input[type="file"]') 
 let defaultUploadText = '';
 let fileLoaded = false;
 
-if (uploadText) {
-    defaultUploadText = uploadText.textContent.trim();
+if (uploadText) defaultUploadText = uploadText.textContent.trim();
+
+function isSrtFile(file) {
+    if (!file) return false;
+    const name = (file.name || '').toLowerCase().trim();
+    return name.endsWith('.srt');
 }
 
 if (fileInput && uploadText) {
     fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files.length > 0) {
-            uploadText.textContent = fileInput.files[0].name;
-            fileLoaded = true;
-        } else {
+        const file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+        if (!file) {
             uploadText.textContent = defaultUploadText;
             fileLoaded = false;
+            return;
         }
+
+        if (!isSrtFile(file)) {
+            alert('Ошибка: можно загрузить только файл .srt');
+            fileInput.value = '';
+            uploadText.textContent = defaultUploadText;
+            fileLoaded = false;
+            return;
+        }
+
+        uploadText.textContent = file.name;
+        fileLoaded = true;
     });
 }
 
-
-// =========================
-// БЛОК 4 — МОДАЛКА ПАРОЛЯ
-// =========================
-// В HTML должны быть:
-// <div id="passwordModal" class="modal hidden"> ... </div>
-// <input id="passwordInput" type="password">
-// <button id="confirmSend">ОТПРАВИТЬ</button>
 const passwordModal = document.getElementById('passwordModal');
 const passwordInput = document.getElementById('passwordInput');
 const confirmSendBtn = document.getElementById('confirmSend');
@@ -84,9 +76,7 @@ function closePasswordModal() {
 
 if (passwordModal) {
     passwordModal.addEventListener('click', (e) => {
-        if (e.target && e.target.dataset && e.target.dataset.close) {
-            closePasswordModal();
-        }
+        if (e.target && e.target.dataset && e.target.dataset.close) closePasswordModal();
     });
 }
 
@@ -94,10 +84,6 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closePasswordModal();
 });
 
-
-// =========================
-// БЛОК 5 — ОТПРАВКА + POLLING
-// =========================
 const sendButton = document.querySelector('.send');
 const downloadMsg = document.querySelector('.download-msg');
 const reloadLink = document.querySelector('.reload-conv');
@@ -105,11 +91,7 @@ const buttonsContainer = document.querySelector('.choice-buttons');
 
 const API_BASE = 'http://localhost:8080/translate';
 
-// тут храним подготовленные данные до ввода пароля
-let pending = {
-    file: null,
-    languages: []
-};
+let pending = { file: null, languages: [] };
 
 function collectSelectedLanguages() {
     const checkboxes = document.querySelectorAll('.choice-lang input[type="checkbox"]');
@@ -139,7 +121,6 @@ function setButtonsDisabled(disabled) {
     else buttonsContainer.classList.remove('buttons-disabled');
 }
 
-// Реальная отправка после ввода пароля
 function startUploadWithPassword(password) {
     if (!pending.file || !pending.languages || pending.languages.length === 0) {
         alert('Ошибка: данные для отправки не готовы.');
@@ -149,38 +130,24 @@ function startUploadWithPassword(password) {
     const formData = new FormData();
     formData.append('languages', pending.languages.join(','));
     formData.append('file', pending.file);
-    formData.append('password', password); // ✅ пароль уходит вместе с файлом
+    formData.append('password', password);
 
     setButtonsDisabled(true);
-
-    // если хочешь показывать "downloadMsg" как индикатор — просто делаем видимым
     if (downloadMsg) downloadMsg.classList.remove('hidden');
 
-    fetch(`${API_BASE}/add`, {
-        method: 'POST',
-        body: formData
-    })
+    fetch(`${API_BASE}/add`, { method: 'POST', body: formData })
         .then(async (res) => {
-            // ❌ неверный пароль => 403 Forbidden (как ты сказал)
-            if (res.status === 403) {
-                throw new Error('FORBIDDEN');
-            }
-            if (!res.ok) {
-                throw new Error('SERVER_ERROR');
-            }
-            return res.text(); // id задачи
+            if (res.status === 403) throw new Error('FORBIDDEN');
+            if (!res.ok) throw new Error('SERVER_ERROR');
+            return res.text();
         })
         .then((id) => {
-            const requestId = (id || '').trim();
-            if (!requestId) {
-                throw new Error('BAD_ID');
-            }
-            pollStatusAndDownload(requestId);
+            const token = (id || '').trim();
+            if (!token) throw new Error('BAD_ID');
+            pollStatusAndDownload(token);
         })
         .catch((err) => {
             setButtonsDisabled(false);
-
-            // если не хочешь показывать downloadMsg при ошибках — прячем обратно
             if (downloadMsg) downloadMsg.classList.add('hidden');
 
             if (err.message === 'FORBIDDEN') {
@@ -195,30 +162,27 @@ function startUploadWithPassword(password) {
 }
 
 if (sendButton) {
-    // Клик по основной "ОТПРАВИТЬ": только проверки + открытие модалки
     sendButton.addEventListener('click', (e) => {
         e.preventDefault();
 
+        const pickedFile = fileInput?.files?.[0] || null;
+
+        if (!pickedFile || !isSrtFile(pickedFile)) {
+            alert('Ошибка: выберите файл .srt');
+            if (fileInput) fileInput.value = '';
+            if (uploadText) uploadText.textContent = defaultUploadText;
+            fileLoaded = false;
+            return;
+        }
+
         const selectedLanguages = collectSelectedLanguages();
-        const hasLanguages = selectedLanguages.length > 0;
 
-        if (!fileLoaded && !hasLanguages) {
-            alert('Ошибка: вы не загрузили .srt файл и не выбрали языки.');
-            return;
-        }
-
-        if (!fileLoaded) {
-            alert('Ошибка: вы не загрузили .srt файл.');
-            return;
-        }
-
-        if (!hasLanguages) {
+        if (selectedLanguages.length === 0) {
             alert('Ошибка: вы не выбрали ни одного языка.');
             return;
         }
 
-        // сохраняем подготовленные данные и просим пароль
-        pending.file = fileInput.files[0];
+        pending.file = pickedFile;
         pending.languages = selectedLanguages;
 
         openPasswordModal();
@@ -226,20 +190,17 @@ if (sendButton) {
 }
 
 if (confirmSendBtn) {
-    // Клик по "ОТПРАВИТЬ" в модалке
     confirmSendBtn.addEventListener('click', () => {
         const password = (passwordInput ? passwordInput.value : '').trim();
         if (!password) {
             alert('Введите пароль.');
             return;
         }
-
         closePasswordModal();
         startUploadWithPassword(password);
     });
 }
 
-// Опционально: отправка пароля по Enter в инпуте
 if (passwordInput && confirmSendBtn) {
     passwordInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
@@ -249,31 +210,22 @@ if (passwordInput && confirmSendBtn) {
     });
 }
 
-
-/**
- * Опрос /translate/status/{id} и скачивание /translate/files/{id}, когда готово
- * @param {string} id
- */
-function pollStatusAndDownload(id) {
+function pollStatusAndDownload(token) {
     const POLL_INTERVAL = 3000;
 
     function checkStatus() {
-        fetch(`${API_BASE}/status/${id}`)
+        fetch(`${API_BASE}/status/${token}`)
             .then(res => {
                 if (!res.ok) throw new Error('STATUS_ERROR');
                 return res.text();
             })
             .then(text => {
                 const isReady = text.trim() === 'true';
-
                 if (!isReady) {
                     setTimeout(checkStatus, POLL_INTERVAL);
                     return;
                 }
-
-                // готово — скачиваем
-                window.location.href = `${API_BASE}/files/${id}`;
-
+                window.location.href = `${API_BASE}/files/${token}`;
                 if (reloadLink) reloadLink.classList.remove('hidden');
                 setButtonsDisabled(false);
             })
