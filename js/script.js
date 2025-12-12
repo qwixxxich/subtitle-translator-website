@@ -60,34 +60,141 @@ if (fileInput && uploadText) {
 
 
 // =========================
-// БЛОК 4 — ОБРАБОТКА КНОПКИ "ОТПРАВИТЬ" + ТАЙМЕР
+// БЛОК 4 — МОДАЛКА ПАРОЛЯ (ОТПРАВИТЬ в окне)
+// =========================
+// В HTML должны быть элементы:
+// #passwordModal, #passwordInput, #confirmSend
+const passwordModal = document.getElementById('passwordModal');
+const passwordInput = document.getElementById('passwordInput');
+const confirmSendBtn = document.getElementById('confirmSend');
+
+function openPasswordModal() {
+    if (!passwordModal) return;
+    if (passwordInput) passwordInput.value = '';
+    passwordModal.classList.remove('hidden');
+    if (passwordInput) passwordInput.focus();
+}
+
+function closePasswordModal() {
+    if (!passwordModal) return;
+    passwordModal.classList.add('hidden');
+}
+
+if (passwordModal) {
+    passwordModal.addEventListener('click', (e) => {
+        if (e.target && e.target.dataset && e.target.dataset.close) {
+            closePasswordModal();
+        }
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePasswordModal();
+});
+
+
+// =========================
+// БЛОК 5 — ОТПРАВКА НА СЕРВЕР + ОЖИДАНИЕ ГОТОВОГО ФАЙЛА
+// (с требованием пароля)
 // =========================
 const sendButton = document.querySelector('.send');
 const downloadMsg = document.querySelector('.download-msg');
 const reloadLink = document.querySelector('.reload-conv');
 const buttonsContainer = document.querySelector('.choice-buttons');
 
+const API_BASE = 'http://localhost:8080/translate';
+
+// Временно храним данные до ввода пароля
+let pending = {
+    file: null,
+    languages: []
+};
+
+function collectSelectedLanguages() {
+    const checkboxes = document.querySelectorAll('.choice-lang input[type="checkbox"]');
+    const selectedLanguages = [];
+
+    checkboxes.forEach(cb => {
+        const label = cb.closest('.checkbox');
+        if (!label) return;
+
+        if (cb.checked) {
+            if (cb.id === 'self-var') {
+                const txt = (selfInput ? selfInput.value : '').trim();
+                if (txt.length > 0) selectedLanguages.push(txt.toLowerCase());
+            } else {
+                selectedLanguages.push((label.dataset.lang || '').toLowerCase());
+            }
+        }
+    });
+
+    return selectedLanguages;
+}
+
+function startUploadWithPassword(password) {
+    if (!pending.file || pending.languages.length === 0) {
+        alert('Ошибка: данные для отправки не готовы.');
+        return;
+    }
+
+    // Формируем FormData как в Postman:
+    // languages: "russian,hindi"
+    // file: ...
+    // password: ...
+    const formData = new FormData();
+    formData.append('languages', pending.languages.join(','));
+    formData.append('file', pending.file);
+    formData.append('password', password);
+
+    if (downloadMsg) {
+        downloadMsg.classList.remove('hidden');
+        downloadMsg.textContent = 'Отправляем файл на сервер...';
+    }
+
+    if (buttonsContainer) {
+        buttonsContainer.classList.add('buttons-disabled');
+    }
+
+    // ===== 1. POST /translate/add =====
+    fetch(`${API_BASE}/add`, {
+        method: 'POST',
+        body: formData
+    })
+        .then(res => {
+            if (!res.ok) {
+                throw new Error('Ошибка ответа сервера при загрузке файла');
+            }
+            return res.text();
+        })
+        .then(id => {
+            const requestId = id.trim();
+            console.log('ID задачи перевода:', requestId);
+
+            if (downloadMsg) {
+                downloadMsg.textContent = 'Файл принят! Ожидаем завершения перевода...';
+            }
+
+            pollStatusAndDownload(requestId);
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Произошла ошибка при отправке файла. Подробности в консоли.');
+
+            if (buttonsContainer) {
+                buttonsContainer.classList.remove('buttons-disabled');
+            }
+            if (downloadMsg) {
+                downloadMsg.classList.add('hidden');
+            }
+        });
+}
+
 if (sendButton) {
+    // 1) Нажатие основной "ОТПРАВИТЬ" — только проверки + открытие модалки
     sendButton.addEventListener('click', (e) => {
         e.preventDefault();
 
-        const checkboxes = document.querySelectorAll('.choice-lang input[type="checkbox"]');
-        const selectedLanguages = [];
-
-        checkboxes.forEach(cb => {
-            const label = cb.closest('.checkbox');
-            if (!label) return;
-
-            if (cb.checked) {
-                if (cb.id === 'self-var') {
-                    const txt = document.getElementById('self-input').value.trim();
-                    if (txt.length > 0) selectedLanguages.push(txt);
-                } else {
-                    selectedLanguages.push(label.dataset.lang);
-                }
-            }
-        });
-
+        const selectedLanguages = collectSelectedLanguages();
         const hasLanguages = selectedLanguages.length > 0;
 
         if (!fileLoaded && !hasLanguages) {
@@ -108,46 +215,80 @@ if (sendButton) {
             return;
         }
 
-        console.log('Выбранные языки:', selectedLanguages);
+        // Сохраняем данные, но не отправляем — просим пароль
+        pending.file = fileInput.files[0];
+        pending.languages = selectedLanguages;
 
-        if (downloadMsg) {
-            downloadMsg.classList.remove('hidden');
-        }
-
-        // =========================
-        // ДЕАКТИВАЦИЯ КНОПОК ТОЛЬКО НА МОБИЛЬНОЙ (через CSS)
-        // =========================
-        if (buttonsContainer) {
-            buttonsContainer.classList.add('buttons-disabled');
-        }
-
-        let timeLeft = 5 * 60;
-        let timerInterval;
-
-        function updateTimer() {
-            if (!downloadMsg) {
-                clearInterval(timerInterval);
-                return;
-            }
-
-            const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-            const seconds = String(timeLeft % 60).padStart(2, '0');
-
-            downloadMsg.textContent =
-                `Принято! Примерное оставшееся время до скачивания: ${minutes}:${seconds}`;
-
-            if (timeLeft > 0) {
-                timeLeft--;
-            } else {
-                clearInterval(timerInterval);
-                downloadMsg.textContent = 'Файл готов к скачиванию!';
-                if (reloadLink) {
-                    reloadLink.classList.remove('hidden');
-                }
-            }
-        }
-
-        updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
+        // Открываем модальное окно пароля
+        openPasswordModal();
     });
+}
+
+// 2) Нажатие "ОТПРАВИТЬ" внутри модалки — реальная отправка
+if (confirmSendBtn) {
+    confirmSendBtn.addEventListener('click', () => {
+        const password = (passwordInput ? passwordInput.value : '').trim();
+
+        if (!password) {
+            alert('Введите пароль');
+            return;
+        }
+
+        closePasswordModal();
+        startUploadWithPassword(password);
+    });
+}
+
+
+/**
+ * Опрос /translate/status/{id} и скачивание /translate/files/{id}, когда готово
+ * @param {string} id
+ */
+function pollStatusAndDownload(id) {
+    const POLL_INTERVAL = 3000; // мс между запросами статуса
+
+    function checkStatus() {
+        fetch(`${API_BASE}/status/${id}`)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error('Ошибка ответа сервера при запросе статуса');
+                }
+                return res.text();
+            })
+            .then(text => {
+                const isReady = text.trim() === 'true';
+
+                if (!downloadMsg) return;
+
+                if (!isReady) {
+                    downloadMsg.textContent = 'Перевод ещё не готов. Продолжаем ожидание...';
+                    setTimeout(checkStatus, POLL_INTERVAL);
+                } else {
+                    downloadMsg.textContent = 'Перевод готов! Начинаем скачивание...';
+
+                    // ===== 3. GET /translate/files/{id} =====
+                    window.location.href = `${API_BASE}/files/${id}`;
+
+                    if (reloadLink) {
+                        reloadLink.classList.remove('hidden');
+                    }
+                    if (buttonsContainer) {
+                        buttonsContainer.classList.remove('buttons-disabled');
+                    }
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Ошибка при запросе статуса перевода. Подробности в консоли.');
+
+                if (buttonsContainer) {
+                    buttonsContainer.classList.remove('buttons-disabled');
+                }
+                if (downloadMsg) {
+                    downloadMsg.classList.add('hidden');
+                }
+            });
+    }
+
+    checkStatus();
 }

@@ -112,6 +112,29 @@
 <footer>
     <a onclick="window.location.reload();" class="reload-conv message hidden">Перезапуск диалога</a>
 </footer>
+<div class="modal hidden" id="passwordModal">
+    <div class="modal__overlay" data-close="true"></div>
+
+    <div class="modal__content">
+        <button class="modal__close" data-close="true">×</button>
+
+        <h2 class="modal__title">Подтверждение</h2>
+        <p class="modal__text">Введите пароль для отправки файла</p>
+
+        <input
+                type="password"
+                id="passwordInput"
+                class="modal__input"
+                placeholder="Пароль"
+        >
+
+        <div class="modal__actions">
+            <button class="modal__btn" id="confirmSend">
+                ОТПРАВИТЬ
+            </button>
+        </div>
+    </div>
+</div>
 <script src="js/script.js"></script>
 </body>
 </html>
