@@ -13,7 +13,7 @@ if (chooseAllLink) {
         const filtered = [...checkboxes].filter(cb => cb.id !== targetId);
         const allChecked = filtered.every(cb => cb.checked);
 
-        filtered.forEach(cb => cb.checked = !allChecked);
+        filtered.forEach(cb => (cb.checked = !allChecked));
     });
 }
 
@@ -60,10 +60,12 @@ if (fileInput && uploadText) {
 
 
 // =========================
-// БЛОК 4 — МОДАЛКА ПАРОЛЯ (ОТПРАВИТЬ в окне)
+// БЛОК 4 — МОДАЛКА ПАРОЛЯ
 // =========================
-// В HTML должны быть элементы:
-// #passwordModal, #passwordInput, #confirmSend
+// В HTML должны быть:
+// <div id="passwordModal" class="modal hidden"> ... </div>
+// <input id="passwordInput" type="password">
+// <button id="confirmSend">ОТПРАВИТЬ</button>
 const passwordModal = document.getElementById('passwordModal');
 const passwordInput = document.getElementById('passwordInput');
 const confirmSendBtn = document.getElementById('confirmSend');
@@ -94,8 +96,7 @@ document.addEventListener('keydown', (e) => {
 
 
 // =========================
-// БЛОК 5 — ОТПРАВКА НА СЕРВЕР + ОЖИДАНИЕ ГОТОВОГО ФАЙЛА
-// (с требованием пароля)
+// БЛОК 5 — ОТПРАВКА + POLLING
 // =========================
 const sendButton = document.querySelector('.send');
 const downloadMsg = document.querySelector('.download-msg');
@@ -104,7 +105,7 @@ const buttonsContainer = document.querySelector('.choice-buttons');
 
 const API_BASE = 'http://localhost:8080/translate';
 
-// Временно храним данные до ввода пароля
+// тут храним подготовленные данные до ввода пароля
 let pending = {
     file: null,
     languages: []
@@ -112,7 +113,7 @@ let pending = {
 
 function collectSelectedLanguages() {
     const checkboxes = document.querySelectorAll('.choice-lang input[type="checkbox"]');
-    const selectedLanguages = [];
+    const selected = [];
 
     checkboxes.forEach(cb => {
         const label = cb.closest('.checkbox');
@@ -121,76 +122,80 @@ function collectSelectedLanguages() {
         if (cb.checked) {
             if (cb.id === 'self-var') {
                 const txt = (selfInput ? selfInput.value : '').trim();
-                if (txt.length > 0) selectedLanguages.push(txt.toLowerCase());
+                if (txt) selected.push(txt.toLowerCase());
             } else {
-                selectedLanguages.push((label.dataset.lang || '').toLowerCase());
+                const lang = (label.dataset.lang || '').trim();
+                if (lang) selected.push(lang.toLowerCase());
             }
         }
     });
 
-    return selectedLanguages;
+    return selected;
 }
 
+function setButtonsDisabled(disabled) {
+    if (!buttonsContainer) return;
+    if (disabled) buttonsContainer.classList.add('buttons-disabled');
+    else buttonsContainer.classList.remove('buttons-disabled');
+}
+
+// Реальная отправка после ввода пароля
 function startUploadWithPassword(password) {
-    if (!pending.file || pending.languages.length === 0) {
+    if (!pending.file || !pending.languages || pending.languages.length === 0) {
         alert('Ошибка: данные для отправки не готовы.');
         return;
     }
 
-    // Формируем FormData как в Postman:
-    // languages: "russian,hindi"
-    // file: ...
-    // password: ...
     const formData = new FormData();
     formData.append('languages', pending.languages.join(','));
     formData.append('file', pending.file);
-    formData.append('password', password);
+    formData.append('password', password); // ✅ пароль уходит вместе с файлом
 
-    if (downloadMsg) {
-        downloadMsg.classList.remove('hidden');
-        downloadMsg.textContent = 'Отправляем файл на сервер...';
-    }
+    setButtonsDisabled(true);
 
-    if (buttonsContainer) {
-        buttonsContainer.classList.add('buttons-disabled');
-    }
+    // если хочешь показывать "downloadMsg" как индикатор — просто делаем видимым
+    if (downloadMsg) downloadMsg.classList.remove('hidden');
 
-    // ===== 1. POST /translate/add =====
     fetch(`${API_BASE}/add`, {
         method: 'POST',
         body: formData
     })
-        .then(res => {
+        .then(async (res) => {
+            // ❌ неверный пароль => 403 Forbidden (как ты сказал)
+            if (res.status === 403) {
+                throw new Error('FORBIDDEN');
+            }
             if (!res.ok) {
-                throw new Error('Ошибка ответа сервера при загрузке файла');
+                throw new Error('SERVER_ERROR');
             }
-            return res.text();
+            return res.text(); // id задачи
         })
-        .then(id => {
-            const requestId = id.trim();
-            console.log('ID задачи перевода:', requestId);
-
-            if (downloadMsg) {
-                downloadMsg.textContent = 'Файл принят! Ожидаем завершения перевода...';
+        .then((id) => {
+            const requestId = (id || '').trim();
+            if (!requestId) {
+                throw new Error('BAD_ID');
             }
-
             pollStatusAndDownload(requestId);
         })
-        .catch(err => {
-            console.error(err);
-            alert('Произошла ошибка при отправке файла. Подробности в консоли.');
+        .catch((err) => {
+            setButtonsDisabled(false);
 
-            if (buttonsContainer) {
-                buttonsContainer.classList.remove('buttons-disabled');
+            // если не хочешь показывать downloadMsg при ошибках — прячем обратно
+            if (downloadMsg) downloadMsg.classList.add('hidden');
+
+            if (err.message === 'FORBIDDEN') {
+                alert('Неверный пароль. Попробуйте ещё раз.');
+                openPasswordModal();
+                return;
             }
-            if (downloadMsg) {
-                downloadMsg.classList.add('hidden');
-            }
+
+            alert('Произошла ошибка при отправке файла. Подробности в консоли.');
+            console.error(err);
         });
 }
 
 if (sendButton) {
-    // 1) Нажатие основной "ОТПРАВИТЬ" — только проверки + открытие модалки
+    // Клик по основной "ОТПРАВИТЬ": только проверки + открытие модалки
     sendButton.addEventListener('click', (e) => {
         e.preventDefault();
 
@@ -199,43 +204,48 @@ if (sendButton) {
 
         if (!fileLoaded && !hasLanguages) {
             alert('Ошибка: вы не загрузили .srt файл и не выбрали языки.');
-            console.error('Ошибка: не выбран файл и не выбраны языки (technical log).');
             return;
         }
 
         if (!fileLoaded) {
             alert('Ошибка: вы не загрузили .srt файл.');
-            console.error('Ошибка: не выбран файл (technical log).');
             return;
         }
 
         if (!hasLanguages) {
             alert('Ошибка: вы не выбрали ни одного языка.');
-            console.error('Ошибка: не выбраны языки (technical log).');
             return;
         }
 
-        // Сохраняем данные, но не отправляем — просим пароль
+        // сохраняем подготовленные данные и просим пароль
         pending.file = fileInput.files[0];
         pending.languages = selectedLanguages;
 
-        // Открываем модальное окно пароля
         openPasswordModal();
     });
 }
 
-// 2) Нажатие "ОТПРАВИТЬ" внутри модалки — реальная отправка
 if (confirmSendBtn) {
+    // Клик по "ОТПРАВИТЬ" в модалке
     confirmSendBtn.addEventListener('click', () => {
         const password = (passwordInput ? passwordInput.value : '').trim();
-
         if (!password) {
-            alert('Введите пароль');
+            alert('Введите пароль.');
             return;
         }
 
         closePasswordModal();
         startUploadWithPassword(password);
+    });
+}
+
+// Опционально: отправка пароля по Enter в инпуте
+if (passwordInput && confirmSendBtn) {
+    passwordInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmSendBtn.click();
+        }
     });
 }
 
@@ -245,48 +255,33 @@ if (confirmSendBtn) {
  * @param {string} id
  */
 function pollStatusAndDownload(id) {
-    const POLL_INTERVAL = 3000; // мс между запросами статуса
+    const POLL_INTERVAL = 3000;
 
     function checkStatus() {
         fetch(`${API_BASE}/status/${id}`)
             .then(res => {
-                if (!res.ok) {
-                    throw new Error('Ошибка ответа сервера при запросе статуса');
-                }
+                if (!res.ok) throw new Error('STATUS_ERROR');
                 return res.text();
             })
             .then(text => {
                 const isReady = text.trim() === 'true';
 
-                if (!downloadMsg) return;
-
                 if (!isReady) {
-                    downloadMsg.textContent = 'Перевод ещё не готов. Продолжаем ожидание...';
                     setTimeout(checkStatus, POLL_INTERVAL);
-                } else {
-                    downloadMsg.textContent = 'Перевод готов! Начинаем скачивание...';
-
-                    // ===== 3. GET /translate/files/{id} =====
-                    window.location.href = `${API_BASE}/files/${id}`;
-
-                    if (reloadLink) {
-                        reloadLink.classList.remove('hidden');
-                    }
-                    if (buttonsContainer) {
-                        buttonsContainer.classList.remove('buttons-disabled');
-                    }
+                    return;
                 }
+
+                // готово — скачиваем
+                window.location.href = `${API_BASE}/files/${id}`;
+
+                if (reloadLink) reloadLink.classList.remove('hidden');
+                setButtonsDisabled(false);
             })
             .catch(err => {
-                console.error(err);
+                setButtonsDisabled(false);
+                if (downloadMsg) downloadMsg.classList.add('hidden');
                 alert('Ошибка при запросе статуса перевода. Подробности в консоли.');
-
-                if (buttonsContainer) {
-                    buttonsContainer.classList.remove('buttons-disabled');
-                }
-                if (downloadMsg) {
-                    downloadMsg.classList.add('hidden');
-                }
+                console.error(err);
             });
     }
 
