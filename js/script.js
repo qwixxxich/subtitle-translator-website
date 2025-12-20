@@ -89,7 +89,7 @@ const downloadMsg = document.querySelector('.download-msg');
 const reloadLink = document.querySelector('.reload-conv');
 const buttonsContainer = document.querySelector('.choice-buttons');
 
-const API_BASE = 'http://81.31.245.146:8080/translate';
+const API_BASE = 'https://81.31.245.146:8080/translate';
 
 let pending = { file: null, languages: [] };
 
